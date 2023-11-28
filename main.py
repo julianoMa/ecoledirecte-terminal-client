@@ -6,10 +6,11 @@ import os
 
 class Login():
     def __init__(self):
-        if load_dotenv() == False:
+        load_dotenv("")
+        if os.getenv("USER") == None:
             self.get_credentials()
         else:
-            print("a")
+            Main()
 
     def get_credentials(self):
         os.system('cls||clear')
@@ -25,6 +26,7 @@ class Login():
        ░                                    ░                          ░                           ░                                               
 
 """)
+        print(os.getenv("USER")) # Always return None ... WHY ? So it's always asking for credentials, even there are credentials in the .env
         print("It looks like this is your first connection.\nPlease type your credentials.")
         self.identifiant = input("\nlogin as : ")
         self.password = input(f"{self.identifiant}'s password : ")
@@ -88,6 +90,7 @@ class Main():
 
         self.test(id, token)
 
+        # A big mess :
     def test(self, id, token):
         self.url = f"https://api.ecoledirecte.com/v3/eleves/{id}/notes.awp?verbe=get&v=4.44.0"
         json_data = json.dumps(self.data)
@@ -95,5 +98,40 @@ class Main():
         response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
         self.json_response = json.loads(response.text)
         print(self.json_response)
+        if self.json_response["code"] == 520:
+            load_dotenv()
+            url = "https://api.ecoledirecte.com/v3/login.awp?v=4.38.0"
+
+            self.data = {
+                "identifiant": os.getenv("USER"),
+                "motdepasse": os.getenv("PASSWORD"),
+                "isReLogin": False,
+                "uuid": ""
+            }
+
+            self.headers = {
+                "Content-Type": "application/form-data",
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+            }
+
+            response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
+
+            if response.status_code == 200:
+                    json_response = json.loads(response.text)
+
+                    if json_response["code"] == 200:
+                        id = json_response["data"]["accounts"][0]["id"]
+                        token = json_response["token"]
+
+                        print(os.environ["TOKEN"])  # outputs None
+                        os.environ["TOKEN"] = token
+                        print(os.environ['TOKEN'])  # outputs 'newvalue'
+
+                    elif json_response["code"] == 505:
+                        print("Invalid username or password")
+                        self.get_credentials()
+            else:
+                print(f"La requête a retourné le code d'état HTTP {response.status_code}")
 
 Login()
