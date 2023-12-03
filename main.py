@@ -79,6 +79,14 @@ class Main():
             "help"
         }
 
+        self.categories = {
+            "Notes",
+            "Messagerie",
+            "EDT",
+            "Agenda",
+            
+        }
+
         self.id = id
         self.token = token
         self.username = username
@@ -144,6 +152,34 @@ class Main():
     def exit(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         exit(0)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 class Notes():
     def __init__(self, id, token):
