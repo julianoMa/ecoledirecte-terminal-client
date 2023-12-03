@@ -6,11 +6,7 @@ import os
 
 class Login():
     def __init__(self):
-        load_dotenv("")
-        if os.getenv("USER") == None:
-            self.get_credentials()
-        else:
-            Main()
+        self.get_credentials()
 
     def get_credentials(self):
         os.system('cls||clear')
@@ -26,8 +22,6 @@ class Login():
        ░                                    ░                          ░                           ░                                               
 
 """)
-        print(os.getenv("USER")) # Always return None ... WHY ? So it's always asking for credentials, even there are credentials in the .env
-        print("It looks like this is your first connection.\nPlease type your credentials.")
         self.identifiant = input("\nlogin as : ")
         self.password = input(f"{self.identifiant}'s password : ")
 
@@ -63,9 +57,10 @@ class Login():
 
                     id = json_response["data"]["accounts"][0]["id"]
                     token = json_response["token"]
+                    etablissement = json_response["data"]["accounts"][0]["nomEtablissement"]
                     credentials_valid = True
 
-                    Main(id, token)
+                    Main(id, token, self.identifiant, etablissement)
 
                 elif json_response["code"] == 505:
                     print("Invalid username or password")
@@ -74,6 +69,19 @@ class Login():
                 print(f"La requête a retourné le code d'état HTTP {response.status_code}")
 
 class Main():
+    def __init__(self, id, token, username, etablissement):
+        self.commands = {
+            "cd",
+            "ls",
+            "help"
+        }
+
+        self.main(id, token, username, etablissement)
+
+    def main(self, id, token, username, etablissement):
+        print(f"[{username}@{etablissement}]")
+
+class Notes():
     def __init__(self, id, token):
         self.timestamp = 1625309472.357246
         self.date_time = datetime.fromtimestamp(self.timestamp)
@@ -88,8 +96,9 @@ class Main():
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
             "X-Token": token
         }
+        #self.test(id, token)
 
-        self.test(id, token)
+        self.main()
 
         # A big mess :
     def test(self, id, token):
@@ -134,5 +143,6 @@ class Main():
                         self.get_credentials()
             else:
                 print(f"La requête a retourné le code d'état HTTP {response.status_code}")
+
 
 Login()
