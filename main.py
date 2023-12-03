@@ -73,13 +73,68 @@ class Main():
         self.commands = {
             "cd",
             "ls",
+            "clear",
+            "exit"
             "help"
         }
 
-        self.main(id, token, username, etablissement)
+        self.id = id
+        self.token = token
+        self.username = username
+        self.etablissement = etablissement
 
-    def main(self, id, token, username, etablissement):
-        print(f"[{username}@{etablissement}]")
+        os.system('cls' if os.name == 'nt' else 'clear')
+
+        self.main()
+
+    def main(self):
+        self.command = input(f"[{self.username}@{self.etablissement}] ")
+        self.check_command()
+
+    def check_command(self):
+        if self.command in self.commands:
+            if self.command == "cd":
+                self.cd()
+
+            elif self.command == "ls":
+                self.ls()
+
+            elif self.command == "help":
+                self.help()
+
+            elif self.command == "clear":
+                self.clear()
+
+            elif self.command == "exit":
+                self.exit()
+                
+        else:
+            print(f"Command '{self.command}' not found.")
+            self.main()
+
+    def cd(self):
+        print("Command in dev ....")
+        self.main()
+    
+    def ls(self):
+        print("Command in dev ....")
+        self.main()
+
+    def help(self):
+        print("""LIST OF COMMANDS :
+              cd : Use it to change of category, see cd -help for more informations
+              ls : See the contenue of the category (like grades, schedule)
+              clear : Clear the terminal
+              exit : Exit the program""")
+        self.main()
+
+    def clear(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+        self.main()
+
+    def exit(self):
+        print("Command in dev ....")
+        self.main()
 
 class Notes():
     def __init__(self, id, token):
