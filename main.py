@@ -55,7 +55,7 @@ class Login():
 
                 if json_response["code"] == 200:
                     print(f"You're logged as {self.identifiant}")
-                    time.sleep(1.5)
+                    time.sleep(1)
 
                     id = json_response["data"]["accounts"][0]["id"]
                     token = json_response["token"]
@@ -100,7 +100,7 @@ class Main():
         self.main()
 
     def main(self):
-        self.command = input(f"[{self.username}@{self.etablissement}] ")
+        self.command = input(f"[{self.username}@{self.etablissement}] $ ")
         self.commandSeparators = self.command.split(" ",1)[0]
         self.check_command()
 
@@ -130,25 +130,24 @@ class Main():
 
     def cd(self):
         try:
-            dir = self.command.split(" ",2)[1]
+            dir = self.command.split(" ", 2)[1].lower()
         except IndexError:
-            print("Please specify the directory")
             self.main()
 
-        if dir in self.categories:
-            if dir == "Notes" or dir == "notes":
-                print("Directory in dev...")
-            elif dir == "Messagerie" or dir == "messagerie":
-                print("Directory in dev...")
-            elif dir == "EDT" or dir == "edt":
-                print("Directory in dev...")
-            elif dir == "Agenda" or dir == "agenda":
-                print("Directory in dev...")
+        if dir in [category.lower() for category in self.categories]:
+            if dir == "notes":
+                print("Directory 'Notes' in dev...")
+            elif dir == "messagerie":
+                print("Directory 'Messagerie' in dev...")
+            elif dir == "edt":
+                print("Directory 'EDT' in dev...")
+            elif dir == "agenda":
+                print("Directory 'Agenda' in dev...")
             elif dir == "-help":
-                print("""DIR HELP :
-                      The avalaible directories are : Notes, Messagerie, EDT, Agenda""")
+                print("""DIR HELP DIRECTORIES:
+                    The available directories are: Notes, Messagerie, EDT, Agenda""")
         else:
-            print(f"'{dir}' is not a valid directory, please type cd -help to see the correct directories")
+            print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
 
         self.main()
     
