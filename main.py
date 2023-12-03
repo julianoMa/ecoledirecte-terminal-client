@@ -136,13 +136,13 @@ class Main():
             self.main()
 
         if dir in self.categories:
-            if dir == "Notes" or "notes":
+            if dir == "Notes" or dir == "notes":
                 print("Directory in dev...")
-            elif dir == "Messagerie" or "messagerie":
+            elif dir == "Messagerie" or dir == "messagerie":
                 print("Directory in dev...")
-            elif dir == "EDT" or "edt":
+            elif dir == "EDT" or dir == "edt":
                 print("Directory in dev...")
-            elif dir == "Agenda" or "agenda":
+            elif dir == "Agenda" or dir == "agenda":
                 print("Directory in dev...")
             elif dir == "-help":
                 print("""DIR HELP :
