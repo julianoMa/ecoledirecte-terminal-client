@@ -1,5 +1,6 @@
 import requests
 from datetime import datetime
+import time
 import json
 from dotenv import load_dotenv
 import os
@@ -54,6 +55,7 @@ class Login():
 
                 if json_response["code"] == 200:
                     print(f"You're logged as {self.identifiant}")
+                    time.sleep(1.5)
 
                     id = json_response["data"]["accounts"][0]["id"]
                     token = json_response["token"]
@@ -76,7 +78,7 @@ class Main():
             "clear",
             "exit",
             "logout",
-            "help"
+            "help",
         }
 
         self.categories = {
@@ -84,7 +86,8 @@ class Main():
             "Messagerie",
             "EDT",
             "Agenda",
-            
+            "-help",
+
         }
 
         self.id = id
@@ -98,34 +101,55 @@ class Main():
 
     def main(self):
         self.command = input(f"[{self.username}@{self.etablissement}] ")
+        self.commandSeparators = self.command.split(" ",1)[0]
         self.check_command()
 
     def check_command(self):
-        if self.command in self.commands:
-            if self.command == "cd":
+        if self.commandSeparators in self.commands:
+            if self.commandSeparators == "cd":
                 self.cd()
 
-            elif self.command == "ls":
+            elif self.commandSeparators == "ls":
                 self.ls()
 
-            elif self.command == "help":
+            elif self.commandSeparators == "help":
                 self.help()
 
-            elif self.command == "clear":
+            elif self.commandSeparators == "clear":
                 self.clear()
 
-            elif self.command == "logout":
+            elif self.commandSeparators == "logout":
                 self.logout()
 
-            elif self.command == "exit":
+            elif self.commandSeparators == "exit":
                 self.exit()
                 
         else:
-            print(f"Command '{self.command}' not found.")
+            print(f"Command '{self.commandSeparators}' not found.")
             self.main()
 
     def cd(self):
-        print("Command in dev ....")
+        try:
+            dir = self.command.split(" ",2)[1]
+        except IndexError:
+            print("Please specify the directory")
+            self.main()
+
+        if dir in self.categories:
+            if dir == "Notes" or "notes":
+                print("Directory in dev...")
+            elif dir == "Messagerie" or "messagerie":
+                print("Directory in dev...")
+            elif dir == "EDT" or "edt":
+                print("Directory in dev...")
+            elif dir == "Agenda" or "agenda":
+                print("Directory in dev...")
+            elif dir == "-help":
+                print("""DIR HELP :
+                      The avalaible directories are : Notes, Messagerie, EDT, Agenda""")
+        else:
+            print(f"'{dir}' is not a valid directory, please type cd -help to see the correct directories")
+
         self.main()
     
     def ls(self):
@@ -152,6 +176,17 @@ class Main():
     def exit(self):
         os.system('cls' if os.name == 'nt' else 'clear')
         exit(0)
+
+
+
+
+
+
+
+
+
+
+
 
 
 
