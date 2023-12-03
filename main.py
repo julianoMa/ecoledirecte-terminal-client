@@ -74,7 +74,8 @@ class Main():
             "cd",
             "ls",
             "clear",
-            "exit"
+            "exit",
+            "logout",
             "help"
         }
 
@@ -105,6 +106,9 @@ class Main():
             elif self.command == "clear":
                 self.clear()
 
+            elif self.command == "logout":
+                self.logout()
+
             elif self.command == "exit":
                 self.exit()
                 
@@ -125,6 +129,7 @@ class Main():
               cd : Use it to change of category, see cd -help for more informations
               ls : See the contenue of the category (like grades, schedule)
               clear : Clear the terminal
+              logout : Return to the login page
               exit : Exit the program""")
         self.main()
 
@@ -132,9 +137,13 @@ class Main():
         os.system('cls' if os.name == 'nt' else 'clear')
         self.main()
 
+    def logout(self):
+        os.system('cls' if os.name == 'nt' else 'clear')
+        Login()
+
     def exit(self):
-        print("Command in dev ....")
-        self.main()
+        os.system('cls' if os.name == 'nt' else 'clear')
+        exit(0)
 
 class Notes():
     def __init__(self, id, token):
