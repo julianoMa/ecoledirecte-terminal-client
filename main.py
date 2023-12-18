@@ -5,12 +5,104 @@ import json
 from dotenv import load_dotenv
 import os
 
+commands = {
+            "cd",
+            "ls",
+            "clear",
+            "exit",
+            "logout",
+            "help",
+}
+
+categories = {
+            "Accueil",
+            "Notes",
+            "Messagerie",
+            "EDT",
+            "Agenda",
+            "-help",
+}
+
+def check_command(commandSeparators, id, token, username, etablissement, command):
+        if commandSeparators in commands:
+            if commandSeparators == "cd":
+                cd(id, token, username, etablissement, command)
+
+            elif commandSeparators == "ls":
+                ls(dir)
+
+            elif commandSeparators == "help":
+                help()
+
+            elif commandSeparators == "clear":
+                clear()
+
+            elif commandSeparators == "logout":
+                logout()
+
+            elif commandSeparators == "exit":
+                exit()
+                
+        else:
+            print(f"Command '{commandSeparators}' not found.")
+
+def cd(id, token, username, etablissement, command):
+        try:
+            dir = command.split(" ", 2)[1].lower()
+        except IndexError:
+            Main(id, token, username, etablissement)
+
+        if dir in [category.lower() for category in categories]:
+            if dir == "notes":
+                Notes(id, token, username, etablissement)
+            elif dir == "messagerie":
+                print("Directory 'Messagerie' in dev...")
+            elif dir == "edt":
+                print("Directory 'EDT' in dev...")
+            elif dir == "agenda":
+                print("Directory 'Agenda' in dev...")
+            elif dir == "-help":
+                print("""DIR HELP DIRECTORIES:
+                    The available directories are: Notes, Messagerie, EDT, Agenda""")
+            elif dir == "accueil":
+                Main(id, token, username, etablissement)
+        else:
+            print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
+
+def ls():
+        print("Command in dev ....")
+
+def help():
+    print("""LIST OF COMMANDS :
+          cd : Use it to change of category, see cd -help for more informations
+          ls : See the contenue of the category (like grades, schedule)
+          clear : Clear the terminal
+          logout : Return to the login page
+          exit : Exit the program""")
+
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
+
+def logout():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    Login()
+
+def exit():
+    os.system('cls' if os.name == 'nt' else 'clear')
+    exit()
+
 class Login():
     def __init__(self):
+        try:
+            internet_check = requests.get("https://google.com")
+        except requests.ConnectionError:
+            print("Look like you're not connected to the Internet, please check your Internet connection before restarting the program ...")
+            quit()
+            
         self.get_credentials()
 
     def get_credentials(self):
-        os.system('cls||clear')
+        os.system('cls' if os.name == 'nt' else 'clear')
         print("""\n\n▓█████  ▄████▄   ▒█████   ██▓    ▓█████    ▓█████▄  ██▓ ██▀███  ▓█████  ▄████▄  ▄▄▄█████▓▓█████     ▄████▄   ██▓     ██▓▓█████  ███▄    █ ▄▄▄█████▓
 ▓█   ▀ ▒██▀ ▀█  ▒██▒  ██▒▓██▒    ▓█   ▀    ▒██▀ ██▌▓██▒▓██ ▒ ██▒▓█   ▀ ▒██▀ ▀█  ▓  ██▒ ▓▒▓█   ▀    ▒██▀ ▀█  ▓██▒    ▓██▒▓█   ▀  ██ ▀█   █ ▓  ██▒ ▓▒
 ▒███   ▒▓█    ▄ ▒██░  ██▒▒██░    ▒███      ░██   █▌▒██▒▓██ ░▄█ ▒▒███   ▒▓█    ▄ ▒ ▓██░ ▒░▒███      ▒▓█    ▄ ▒██░    ▒██▒▒███   ▓██  ▀█ ██▒▒ ▓██░ ▒░
@@ -62,6 +154,7 @@ class Login():
                     etablissement = json_response["data"]["accounts"][0]["nomEtablissement"]
                     credentials_valid = True
 
+                    os.system('cls' if os.name == 'nt' else 'clear')
                     Main(id, token, self.identifiant, etablissement)
 
                 elif json_response["code"] == 505:
@@ -72,153 +165,37 @@ class Login():
 
 class Main():
     def __init__(self, id, token, username, etablissement):
-        self.commands = {
-            "cd",
-            "ls",
-            "clear",
-            "exit",
-            "logout",
-            "help",
-        }
-
-        self.categories = {
-            "Notes",
-            "Messagerie",
-            "EDT",
-            "Agenda",
-            "-help",
-
-        }
+        self.dir = "Main"
 
         self.id = id
         self.token = token
         self.username = username
         self.etablissement = etablissement
 
-        os.system('cls' if os.name == 'nt' else 'clear')
+        self.directory = f"[{self.username}@{self.etablissement}] $ "
 
         self.main()
 
     def main(self):
-        self.command = input(f"[{self.username}@{self.etablissement}] $ ")
-        self.commandSeparators = self.command.split(" ",1)[0]
-        self.check_command()
-
-    def check_command(self):
-        if self.commandSeparators in self.commands:
-            if self.commandSeparators == "cd":
-                self.cd()
-
-            elif self.commandSeparators == "ls":
-                self.ls()
-
-            elif self.commandSeparators == "help":
-                self.help()
-
-            elif self.commandSeparators == "clear":
-                self.clear()
-
-            elif self.commandSeparators == "logout":
-                self.logout()
-
-            elif self.commandSeparators == "exit":
-                self.exit()
-                
-        else:
-            print(f"Command '{self.commandSeparators}' not found.")
-            self.main()
-
-    def cd(self):
-        try:
-            dir = self.command.split(" ", 2)[1].lower()
-        except IndexError:
-            self.main()
-
-        if dir in [category.lower() for category in self.categories]:
-            if dir == "notes":
-                print("Directory 'Notes' in dev...")
-            elif dir == "messagerie":
-                print("Directory 'Messagerie' in dev...")
-            elif dir == "edt":
-                print("Directory 'EDT' in dev...")
-            elif dir == "agenda":
-                print("Directory 'Agenda' in dev...")
-            elif dir == "-help":
-                print("""DIR HELP DIRECTORIES:
-                    The available directories are: Notes, Messagerie, EDT, Agenda""")
-        else:
-            print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
+        self.command = input(self.directory)
+        commandSeparators = self.command.split(" ",1)[0]
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command)
 
         self.main()
-    
-    def ls(self):
-        print("Command in dev ....")
-        self.main()
-
-    def help(self):
-        print("""LIST OF COMMANDS :
-              cd : Use it to change of category, see cd -help for more informations
-              ls : See the contenue of the category (like grades, schedule)
-              clear : Clear the terminal
-              logout : Return to the login page
-              exit : Exit the program""")
-        self.main()
-
-    def clear(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        self.main()
-
-    def logout(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        Login()
-
-    def exit(self):
-        os.system('cls' if os.name == 'nt' else 'clear')
-        exit(0)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 class Notes():
-    def __init__(self, id, token):
-        self.timestamp = 1625309472.357246
+    def __init__(self, id, token, username, etablissement):
+        self.timestamp = time.time()
         self.date_time = datetime.fromtimestamp(self.timestamp)
+
+        self.dir = "Notes"
+
+        self.id = id
+        self.token = token
+        self.username = username
+        self.etablissement = etablissement
+
+        self.url = f"https://api.ecoledirecte.com/v3/eleves/{self.id}/notes.awp?verbe=get&v=4.44.0"
 
         self.data = {
             "anneeScolaire": ""
@@ -228,55 +205,18 @@ class Notes():
             "Content-Type": "application/x-www-form-urlencoded",
             "Accept": "application/json, text/plain, */*",
             "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-            "X-Token": token
+            "X-Token": self.token
         }
-        #self.test(id, token)
+
+        self.directory = f"[{self.username}@{self.etablissement}/notes] $ "
 
         self.main()
 
-        # A big mess :
-    def test(self, id, token):
-        self.url = f"https://api.ecoledirecte.com/v3/eleves/{id}/notes.awp?verbe=get&v=4.44.0"
-        json_data = json.dumps(self.data)
+    def main(self):
+        self.command = input(self.directory)
+        commandSeparators = self.command.split(" ",1)[0]
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command)
 
-        response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
-        self.json_response = json.loads(response.text)
-        print(self.json_response)
-        if self.json_response["code"] == 520:
-            load_dotenv()
-            url = "https://api.ecoledirecte.com/v3/login.awp?v=4.38.0"
-
-            self.data = {
-                "identifiant": os.getenv("USER"),
-                "motdepasse": os.getenv("PASSWORD"),
-                "isReLogin": False,
-                "uuid": ""
-            }
-
-            self.headers = {
-                "Content-Type": "application/form-data",
-                "Accept": "application/json, text/plain, */*",
-                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-            }
-
-            response = requests.post(self.url, data={'data': json_data}, headers=self.headers)
-
-            if response.status_code == 200:
-                    json_response = json.loads(response.text)
-
-                    if json_response["code"] == 200:
-                        id = json_response["data"]["accounts"][0]["id"]
-                        token = json_response["token"]
-
-                        print(os.environ["TOKEN"])  # outputs None
-                        os.environ["TOKEN"] = token
-                        print(os.environ['TOKEN'])  # outputs 'newvalue'
-
-                    elif json_response["code"] == 505:
-                        print("Invalid username or password")
-                        self.get_credentials()
-            else:
-                print(f"La requête a retourné le code d'état HTTP {response.status_code}")
-
+        self.main()
 
 Login()
