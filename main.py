@@ -69,7 +69,7 @@ def cd(id, token, username, etablissement, command):
         else:
             print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
 
-def ls():
+def ls(dir):
         print("Command in dev ....")
 
 def help():
