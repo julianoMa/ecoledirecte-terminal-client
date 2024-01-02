@@ -1,8 +1,9 @@
 import requests
 from datetime import datetime
 import time
+import getpass
 import json
-from dotenv import load_dotenv
+import sys
 import os
 
 commands = {
@@ -12,6 +13,7 @@ commands = {
             "exit",
             "logout",
             "help",
+            "",
 }
 
 categories = {
@@ -23,26 +25,22 @@ categories = {
             "-help",
 }
 
-def check_command(commandSeparators, id, token, username, etablissement, command):
+def check_command(commandSeparators, id, token, username, etablissement, command, dir):
         if commandSeparators in commands:
             if commandSeparators == "cd":
                 cd(id, token, username, etablissement, command)
-
             elif commandSeparators == "ls":
-                ls(dir)
-
+                ls(dir, id, token)
             elif commandSeparators == "help":
                 help()
-
             elif commandSeparators == "clear":
                 clear()
-
             elif commandSeparators == "logout":
                 logout()
-
             elif commandSeparators == "exit":
                 exit()
-                
+            elif commandSeparators == "":
+                pass
         else:
             print(f"Command '{commandSeparators}' not found.")
 
@@ -69,8 +67,31 @@ def cd(id, token, username, etablissement, command):
         else:
             print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
 
-def ls(dir):
-        print("Command in dev ....")
+def ls(dir, id, token):
+        if dir == "Main":
+            print("There's nothing to show here... yet")
+        elif dir == "Notes":
+            url = f"https://api.ecoledirecte.com/v3/eleves/{id}/notes.awp?verbe=get&v=4.46.3"
+            
+            data = {
+                "anneeScolaire": ""
+            }
+            headers = {
+                "Content-Type": "application/x-www-form-urlencoded",
+                "Accept": "application/json, text/plain, */*",
+                "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                "X-Token": token
+            }
+    
+            json_data = json.dumps(data)
+
+            response = requests.post(url, data={'data': json_data}, headers=headers)
+            response = response.json() # grades
+
+        elif dir == "Messagerie":
+            print("Can't access to your mails")
+        elif dir == "Agenda":
+            print("Can't access to your schedule")
 
 def help():
     print("""LIST OF COMMANDS :
@@ -89,7 +110,7 @@ def logout():
 
 def exit():
     os.system('cls' if os.name == 'nt' else 'clear')
-    exit()
+    exit(1)
 
 class Login():
     def __init__(self):
@@ -116,7 +137,7 @@ class Login():
 
 """)
         self.identifiant = input("\nlogin as : ")
-        self.password = input(f"{self.identifiant}'s password : ")
+        self.password = getpass.getpass(f"{self.identifiant}'s password : ")
 
         self.data = {
             "identifiant": self.identifiant,
@@ -159,6 +180,7 @@ class Login():
 
                 elif json_response["code"] == 505:
                     print("Invalid username or password")
+                    time.sleep(1)
                     self.get_credentials()
             else:
                 print(f"La requête a retourné le code d'état HTTP {response.status_code}")
@@ -179,15 +201,12 @@ class Main():
     def main(self):
         self.command = input(self.directory)
         commandSeparators = self.command.split(" ",1)[0]
-        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command)
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
 
         self.main()
 
 class Notes():
     def __init__(self, id, token, username, etablissement):
-        self.timestamp = time.time()
-        self.date_time = datetime.fromtimestamp(self.timestamp)
-
         self.dir = "Notes"
 
         self.id = id
@@ -195,7 +214,7 @@ class Notes():
         self.username = username
         self.etablissement = etablissement
 
-        self.url = f"https://api.ecoledirecte.com/v3/eleves/{self.id}/notes.awp?verbe=get&v=4.44.0"
+        self.url = f"https://api.ecoledirecte.com/v3/eleves/{self.id}/notes.awp"
 
         self.data = {
             "anneeScolaire": ""
@@ -215,7 +234,7 @@ class Notes():
     def main(self):
         self.command = input(self.directory)
         commandSeparators = self.command.split(" ",1)[0]
-        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command)
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
 
         self.main()
 
