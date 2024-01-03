@@ -76,6 +76,7 @@ def ls(dir, id, token):
             data = {
                 "anneeScolaire": ""
             }
+
             headers = {
                 "Content-Type": "application/x-www-form-urlencoded",
                 "Accept": "application/json, text/plain, */*",
@@ -86,7 +87,29 @@ def ls(dir, id, token):
             json_data = json.dumps(data)
 
             response = requests.post(url, data={'data': json_data}, headers=headers)
-            response = response.json() # grades
+            response = response.json()
+
+            # Getting the periodes
+
+            periodes = {
+                "A001",
+                "A002",
+                "A003",
+            }
+
+            periodes_names = []
+
+            for periode_data in response["data"]["periodes"]:
+                id_periode = periode_data["idPeriode"]
+                if id_periode in periodes:
+                    periode_name = periode_data["periode"]
+                    periodes_names.append(periode_name)
+
+            # Getting the grades
+            
+            print("Grades :\n----------------")
+            print(f"Subject          | {periodes_names[0]}    | {periodes_names[1]}   | {periodes_names[2]}    \n-----------------------------------------------------------------")
+
 
         elif dir == "Messagerie":
             print("Can't access to your mails")
@@ -110,7 +133,7 @@ def logout():
 
 def exit():
     os.system('cls' if os.name == 'nt' else 'clear')
-    exit(1)
+    quit()
 
 class Login():
     def __init__(self):
