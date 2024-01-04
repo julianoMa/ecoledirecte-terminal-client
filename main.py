@@ -3,6 +3,7 @@ from datetime import datetime
 import time
 import getpass
 import json
+import string
 import sys
 import os
 
@@ -24,6 +25,9 @@ categories = {
             "Agenda",
             "-help",
 }
+
+def remove_non_printable(text):
+    return ''.join(filter(lambda x: x in string.printable, text))
 
 def check_command(commandSeparators, id, token, username, etablissement, command, dir):
         if commandSeparators in commands:
@@ -87,15 +91,11 @@ def ls(dir, id, token):
             json_data = json.dumps(data)
 
             response = requests.post(url, data={'data': json_data}, headers=headers)
-            response = response.json()
+            response = response.json()  
 
             # Getting the periodes
 
-            periodes = {
-                "A001",
-                "A002",
-                "A003",
-            }
+            periodes = ["A001", "A002", "A003"]
 
             periodes_names = []
 
@@ -105,11 +105,48 @@ def ls(dir, id, token):
                     periode_name = periode_data["periode"]
                     periodes_names.append(periode_name)
 
-            # Getting the grades
-            
-            print("Grades :\n----------------")
-            print(f"Subject          | {periodes_names[0]}    | {periodes_names[1]}   | {periodes_names[2]}    \n-----------------------------------------------------------------")
+            # Getting the subjects
+                    
+            subjects = []
 
+            for periode_data in response["data"]["periodes"][0]["ensembleMatieres"]["disciplines"]:
+                discipline = periode_data["discipline"]
+                subjects.append(discipline)
+
+
+            # Getting the grades for each subject
+        
+            # Initialize subject_values to store grades for each subject and period
+            subject_values = {subject: {p: [] for p in periodes} for subject in subjects}
+
+            # Iterate through notes and collect values by subject and period
+            for note in response["data"]["notes"]:
+                subject = note["libelleMatiere"]
+                valeur = note["valeur"]
+                periode = note["codePeriode"]
+
+                # Check if the period and subject are in the expected lists
+                if periode in periodes and subject in subject_values:
+                    subject_values[subject][periode].append(valeur)
+
+            # Displaying values by subject aligned with periods
+            max_len = max(len(subject) for subject in subject_values.keys())
+
+            # Calculate maximum widths for each column
+            column_widths = [max(len(period), max(len(str(grade)) if str(grade) != 'Disp' else len('Disp') for grade in values.values())) for period, values in zip(periodes_names, subject_values.values())]
+
+            print(f"{'Subject':<{max_len}} | {' | '.join([f'{p:^{w}}' for p, w in zip(periodes_names, column_widths)])}")
+
+            for subject, values in subject_values.items():
+                grades = []
+                for period, grade in values.items():
+                    if str(grade) == 'Disp':
+                        grades.append('Disp')
+                    else:
+                        grades.append(", ".join(map(str, grade)) if isinstance(grade, list) else str(grade))
+
+                # Output each row with proper spacing
+                print(f"{subject:<{max_len}} | {' | '.join([f'{g:^{w}}' for g, w in zip(grades, column_widths)])}")
 
         elif dir == "Messagerie":
             print("Can't access to your mails")
