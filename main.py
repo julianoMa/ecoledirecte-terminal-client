@@ -1,10 +1,8 @@
 import requests
-from datetime import datetime
 import time
 import getpass
 import json
 import string
-import sys
 import os
 
 commands = {
