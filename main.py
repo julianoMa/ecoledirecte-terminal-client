@@ -1,6 +1,7 @@
 import requests
 import time
 import getpass
+from datetime import datetime
 import json
 import string
 import os
@@ -18,21 +19,24 @@ commands = {
 categories = {
             "Accueil",
             "Notes",
-            "Messagerie",
             "EDT",
             "Agenda",
             "-help",
 }
 
-def remove_non_printable(text):
-    return ''.join(filter(lambda x: x in string.printable, text))
+def date_format_check(var):
+    try:
+        datetime.strptime(var, '%Y-%m-%d')
+        return True
+    except ValueError:
+        return False
 
 def check_command(commandSeparators, id, token, username, etablissement, command, dir):
         if commandSeparators in commands:
             if commandSeparators == "cd":
                 cd(id, token, username, etablissement, command)
             elif commandSeparators == "ls":
-                ls(dir, id, token)
+                ls(dir, id, token, command)
             elif commandSeparators == "help":
                 help()
             elif commandSeparators == "clear":
@@ -55,12 +59,10 @@ def cd(id, token, username, etablissement, command):
         if dir in [category.lower() for category in categories]:
             if dir == "notes":
                 Notes(id, token, username, etablissement)
-            elif dir == "messagerie":
-                print("Directory 'Messagerie' in dev...")
             elif dir == "edt":
                 print("Directory 'EDT' in dev...")
             elif dir == "agenda":
-                print("Directory 'Agenda' in dev...")
+                Agenda(id, token, username, etablissement)
             elif dir == "-help":
                 print("""DIR HELP DIRECTORIES:
                     The available directories are: Notes, Messagerie, EDT, Agenda""")
@@ -69,7 +71,7 @@ def cd(id, token, username, etablissement, command):
         else:
             print(f"'{dir.capitalize()}' is not a valid directory. Please type 'cd -help' to see the correct directories")
 
-def ls(dir, id, token):
+def ls(dir, id, token, command):
         if dir == "Main":
             print("There's nothing to show here... yet")
         elif dir == "Notes":
@@ -91,8 +93,6 @@ def ls(dir, id, token):
             response = requests.post(url, data={'data': json_data}, headers=headers)
             response = response.json()  
 
-            # Getting the periodes
-
             periodes = ["A001", "A002", "A003"]
 
             periodes_names = []
@@ -102,8 +102,6 @@ def ls(dir, id, token):
                 if id_periode in periodes:
                     periode_name = periode_data["periode"]
                     periodes_names.append(periode_name)
-
-            # Getting the subjects
                     
             subjects = []
 
@@ -111,26 +109,18 @@ def ls(dir, id, token):
                 discipline = periode_data["discipline"]
                 subjects.append(discipline)
 
-
-            # Getting the grades for each subject
-        
-            # Initialize subject_values to store grades for each subject and period
             subject_values = {subject: {p: [] for p in periodes} for subject in subjects}
 
-            # Iterate through notes and collect values by subject and period
             for note in response["data"]["notes"]:
                 subject = note["libelleMatiere"]
                 valeur = note["valeur"]
                 periode = note["codePeriode"]
 
-                # Check if the period and subject are in the expected lists
                 if periode in periodes and subject in subject_values:
                     subject_values[subject][periode].append(valeur)
 
-            # Displaying values by subject aligned with periods
             max_len = max(len(subject) for subject in subject_values.keys())
 
-            # Calculate maximum widths for each column
             column_widths = [max(len(period), max(len(str(grade)) if str(grade) != 'Disp' else len('Disp') for grade in values.values())) for period, values in zip(periodes_names, subject_values.values())]
 
             print(f"{'Subject':<{max_len}} | {' | '.join([f'{p:^{w}}' for p, w in zip(periodes_names, column_widths)])}")
@@ -143,12 +133,50 @@ def ls(dir, id, token):
                     else:
                         grades.append(", ".join(map(str, grade)) if isinstance(grade, list) else str(grade))
 
-                # Output each row with proper spacing
                 print(f"{subject:<{max_len}} | {' | '.join([f'{g:^{w}}' for g, w in zip(grades, column_widths)])}")
 
-        elif dir == "Messagerie":
-            print("Can't access to your mails")
         elif dir == "Agenda":
+            try:
+                date = command.split(" ", 2)[1]
+                if date_format_check(date) == True:
+                    print("Date valid") # check detailled homeworks
+                else:
+                    print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
+
+            except IndexError:
+                url = f"https://api.ecoledirecte.com/v3/Eleves/{id}/cahierdetexte.awp?verbe=get&v=4.46.3"
+
+                data = {}
+
+                headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json, text/plain, */*",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                    "X-Token": token
+                }
+
+                json_data = json.dumps(data)
+
+                response = requests.post(url, data={'data': json_data}, headers=headers)
+                response = response.json()
+
+                homeworks_data = response["data"]
+
+                for date, homeworks in homeworks_data.items():
+                    nb = 1
+                    print(f"----------------------\nOn {date}:")
+                    for homework in homeworks:
+                        subject = homework["matiere"]
+                        gaveThe = homework["donneLe"]
+                        test = homework["interrogation"]
+
+                        print(f"{nb}. Subject: {subject}")
+                        print(f"Test ? : {test}")
+                        print(f"Gave the : {gaveThe}\n")
+
+                        nb = nb + 1
+
+        elif dir == "EDT":
             print("Can't access to your schedule")
 
 def help():
@@ -272,20 +300,27 @@ class Notes():
         self.username = username
         self.etablissement = etablissement
 
-        self.url = f"https://api.ecoledirecte.com/v3/eleves/{self.id}/notes.awp"
-
-        self.data = {
-            "anneeScolaire": ""
-        }
-
-        self.headers = {
-            "Content-Type": "application/x-www-form-urlencoded",
-            "Accept": "application/json, text/plain, */*",
-            "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
-            "X-Token": self.token
-        }
-
         self.directory = f"[{self.username}@{self.etablissement}/notes] $ "
+
+        self.main()
+
+    def main(self):
+        self.command = input(self.directory)
+        commandSeparators = self.command.split(" ",1)[0]
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
+
+        self.main()
+
+class Agenda():
+    def __init__(self, id, token, username, etablissement):
+        self.dir = "Agenda"
+
+        self.id = id
+        self.token = token
+        self.username = username
+        self.etablissement = etablissement
+
+        self.directory = f"[{self.username}@{self.etablissement}/agenda] $ "
 
         self.main()
 
