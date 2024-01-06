@@ -1,7 +1,7 @@
 import requests
 import time
 import getpass
-from datetime import datetime
+import datetime
 import base64
 from bs4 import BeautifulSoup
 import json
@@ -62,7 +62,7 @@ def cd(id, token, username, etablissement, command):
             if dir == "notes":
                 Notes(id, token, username, etablissement)
             elif dir == "edt":
-                print("Directory 'EDT' in dev...")
+                EDT(id, token, username, etablissement)
             elif dir == "agenda":
                 Agenda(id, token, username, etablissement)
             elif dir == "-help":
@@ -120,6 +120,8 @@ def ls(dir, id, token, command):
 
                 if periode in periodes and subject in subject_values:
                     subject_values[subject][periode].append(valeur)
+
+            # Thanks to ChatGPT for this part :
 
             max_len = max(len(subject) for subject in subject_values.keys())
 
@@ -209,7 +211,65 @@ def ls(dir, id, token, command):
                         nb = nb + 1
 
         elif dir == "EDT":
-            print("Can't access to your schedule")
+            url = f"https://api.ecoledirecte.com/v3/E/{id}/emploidutemps.awp?verbe=get&v=4.46.3"
+            try:
+                date = command.split(" ", 2)[1]
+                if date_format_check(date) == True:
+                    pass
+                else:
+                    print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
+            except IndexError:
+                aujd = datetime.date.today()
+
+                dateDebut = aujd - datetime.timedelta(days=aujd.weekday())
+
+                dateFIn = dateDebut + datetime.timedelta(days=6)
+
+                data = {
+                    "dateDebut": "2024-01-08", # str(dateDebut)
+                    "dateFin": "2024-01-14", # str(dateFIn)
+                    "avecTrous": False
+                }
+
+                headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json, text/plain, */*",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                    "X-Token": token
+                }
+
+                json_data = json.dumps(data)
+
+                response = requests.post(url, data={'data': json_data}, headers=headers)
+                response = response.json()
+
+                schedule_by_date = {}
+
+                for course in response["data"]:
+                    date = course["start_date"].split()[0] 
+                    if date in schedule_by_date:
+                        schedule_by_date[date].append(course)
+                    else:
+                        schedule_by_date[date] = [course]
+
+                # Printing the schedule board
+                print("Schedule of the current Week")
+                print("=" * 80)
+
+                for date, courses in schedule_by_date.items():
+                    print(f"Date: {date}")
+                    print("-" * 80)
+                    print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format("Subject", "Start Time", "End Time", "Professor", "Room"))
+                    print("-" * 80)
+                    for course in courses:
+                        subject = course["text"]
+                        start_time = course["start_date"].split()[1]
+                        end_time = course["end_date"].split()[1]
+                        professor = course["prof"]
+                        room = course["salle"]
+                        print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format(subject, start_time, end_time, professor, room))
+                    print("=" * 80)
+
 
 def help():
     print("""LIST OF COMMANDS :
@@ -301,7 +361,7 @@ class Login():
                     time.sleep(1)
                     self.get_credentials()
             else:
-                print(f"La requête a retourné le code d'état HTTP {response.status_code}")
+                print(f"Error : {response.status_code}")
 
 class Main():
     def __init__(self, id, token, username, etablissement):
@@ -353,6 +413,26 @@ class Agenda():
         self.etablissement = etablissement
 
         self.directory = f"[{self.username}@{self.etablissement}/agenda] $ "
+
+        self.main()
+
+    def main(self):
+        self.command = input(self.directory)
+        commandSeparators = self.command.split(" ",1)[0]
+        check_command(commandSeparators, self.id, self.token, self.username, self.etablissement, self.command, self.dir)
+
+        self.main()
+
+class EDT():
+    def __init__(self, id, token, username, etablissement):
+        self.dir = "EDT"
+
+        self.id = id
+        self.token = token
+        self.username = username
+        self.etablissement = etablissement
+
+        self.directory = f"[{self.username}@{self.etablissement}/edt] $ "
 
         self.main()
 
