@@ -1,4 +1,8 @@
 requests
-python-dotenv
+getpass
 time
 datetime
+base64
+bs4
+json
+os
