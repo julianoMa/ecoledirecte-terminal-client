@@ -160,7 +160,10 @@ def ls(dir, id, token, command):
                     response = requests.post(url, data={'data': json_data}, headers=headers)
                     response = response.json()
 
-                    homeworks_data = response["data"]["matieres"]
+                    try:
+                        homeworks_data = response["data"]["matieres"]
+                    except KeyError:
+                        print("There is no homeworks for this day")
 
                     for homework in homeworks_data:
                         nb = 1
