@@ -2,11 +2,9 @@ import requests
 import time
 import getpass
 import datetime
-from datetime import datetime
 import base64
 from bs4 import BeautifulSoup
 import json
-import string
 import os
 
 commands = {
@@ -29,7 +27,7 @@ categories = {
 
 def date_format_check(var):
     try:
-        datetime.strptime(var, '%Y-%m-%d')
+        datetime.datetime.strptime(var, '%Y-%m-%d')
         return True
     except ValueError:
         return False
@@ -219,7 +217,56 @@ def ls(dir, id, token, command):
             try:
                 date = command.split(" ", 2)[1]
                 if date_format_check(date) == True:
-                    pass
+                    date = datetime.datetime.strptime(date, '%Y-%m-%d')
+                    dateDebut = date - datetime.timedelta(days=date.weekday())
+                    dateFin = dateDebut + datetime.timedelta(days=6)
+
+                    data = {
+                        "dateDebut": str(dateDebut),
+                        "dateFin": str(dateFin),
+                        "avecTrous": False
+                    }
+
+                    headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json, text/plain, */*",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                    "X-Token": token
+                    }
+
+                    json_data = json.dumps(data)
+
+                    response = requests.post(url, data={'data': json_data}, headers=headers)
+                    response = response.json()
+
+                    schedule_by_date = {}
+
+                    for course in response["data"]:
+                        date = course["start_date"].split()[0] 
+                        if date in schedule_by_date:
+                            schedule_by_date[date].append(course)
+                        else:
+                            schedule_by_date[date] = [course]
+
+                    print("Schedule of the selected Week")
+                    print("=" * 80)
+
+                    for date, courses in schedule_by_date.items():
+                        courses_sorted = sorted(courses, key=lambda x: x["start_date"])
+
+                        print(f"Date: {date}")
+                        print("-" * 80)
+                        print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format("Subject", "Start Time", "End Time", "Professor", "Room"))
+                        print("-" * 80)
+                        
+                        for course in courses_sorted:
+                            subject = course["text"]
+                            start_time = course["start_date"].split()[1]
+                            end_time = course["end_date"].split()[1]
+                            professor = course["prof"]
+                            room = course["salle"]
+                            print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format(subject, start_time, end_time, professor, room))
+                        print("=" * 80)
                 else:
                     print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
             except IndexError:
@@ -227,11 +274,11 @@ def ls(dir, id, token, command):
 
                 dateDebut = aujd - datetime.timedelta(days=aujd.weekday())
 
-                dateFIn = dateDebut + datetime.timedelta(days=6)
+                dateFin = dateDebut + datetime.timedelta(days=6)
 
                 data = {
-                    "dateDebut": "2024-01-08", # str(dateDebut)
-                    "dateFin": "2024-01-14", # str(dateFIn)
+                    "dateDebut": str(dateDebut),
+                    "dateFin": str(dateFin),
                     "avecTrous": False
                 }
 
@@ -256,7 +303,6 @@ def ls(dir, id, token, command):
                     else:
                         schedule_by_date[date] = [course]
 
-                # Printing the schedule board
                 print("Schedule of the current Week")
                 print("=" * 80)
 
