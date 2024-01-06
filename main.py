@@ -2,6 +2,7 @@ import requests
 import time
 import getpass
 import datetime
+from datetime import datetime
 import base64
 from bs4 import BeautifulSoup
 import json
@@ -257,11 +258,14 @@ def ls(dir, id, token, command):
                 print("=" * 80)
 
                 for date, courses in schedule_by_date.items():
+                    courses_sorted = sorted(courses, key=lambda x: x["start_date"])
+
                     print(f"Date: {date}")
                     print("-" * 80)
                     print("{:<20} | {:<15} | {:<15} | {:<20} | {:<10}".format("Subject", "Start Time", "End Time", "Professor", "Room"))
                     print("-" * 80)
-                    for course in courses:
+                    
+                    for course in courses_sorted:
                         subject = course["text"]
                         start_time = course["start_date"].split()[1]
                         end_time = course["end_date"].split()[1]
