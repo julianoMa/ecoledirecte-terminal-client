@@ -2,6 +2,8 @@ import requests
 import time
 import getpass
 from datetime import datetime
+import base64
+from bs4 import BeautifulSoup
 import json
 import string
 import os
@@ -65,7 +67,7 @@ def cd(id, token, username, etablissement, command):
                 Agenda(id, token, username, etablissement)
             elif dir == "-help":
                 print("""DIR HELP DIRECTORIES:
-                    The available directories are: Notes, Messagerie, EDT, Agenda""")
+                    The available directories are: Notes, EDT, Agenda""")
             elif dir == "accueil":
                 Main(id, token, username, etablissement)
         else:
@@ -139,7 +141,37 @@ def ls(dir, id, token, command):
             try:
                 date = command.split(" ", 2)[1]
                 if date_format_check(date) == True:
-                    print("Date valid") # check detailled homeworks
+                    url = f"https://api.ecoledirecte.com/v3/Eleves/{id}/cahierdetexte/{date}.awp?verbe=get&v=4.46.3"
+
+                    data = {}
+
+                    headers = {
+                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Accept": "application/json, text/plain, */*",
+                    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/116.0.0.0 Safari/537.36",
+                    "X-Token": token
+                    }
+
+                    json_data = json.dumps(data)
+
+                    response = requests.post(url, data={'data': json_data}, headers=headers)
+                    response = response.json()
+
+                    homeworks_data = response["data"]["matieres"]
+
+                    for homework in homeworks_data:
+                        nb = 1
+                        subject = homework["matiere"]
+                        gaveThe = homework["aFaire"]["donneLe"]
+                        test = homework["interrogation"]
+                        contenu = homework["aFaire"]["contenu"]
+                        enLigne = homework["aFaire"]["rendreEnLigne"]
+
+                        print(f"Subject : {subject}")
+                        print(f"Gave the : {gaveThe}")
+                        print(f"Test ? : {test}")
+                        print(f"Give online ? : {enLigne}")
+                        print(f"Homework : {BeautifulSoup(base64.b64decode(contenu).decode('utf-8'), 'html.parser').get_text()}\n----------------------")
                 else:
                     print("The date is not valid ! Please type a date in the format YYYY-MM-DD")
 
