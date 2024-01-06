@@ -19,3 +19,6 @@ Pour voir les différentes catégories disponibles, vous devez utiliser la comma
 Pour voir son emploi du temps d'une semaine choisie, vous devez d'abord vous rendre dans le répertoire `edt` puis lancer la commande `ls YYYY-MM-DD` (YYYY = année, MM = mois, DD = jour . Vous pouvez mettre n'importe quel jour de la semaine désirée)
 
 Pour voir les devoirs détaillés, vous devez d'abord vous rendre dans le répertoire `agenda` puis lancer la commande `ls YYYY-MM-DD` (si dans le jour choisi il n'y a aucun devoir, alors rien ne s'affichera)
+
+> [!TIP]
+> Pour voir les différentes commandes disponibles écrivez `help`
